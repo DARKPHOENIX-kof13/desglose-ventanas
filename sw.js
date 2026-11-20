@@ -1,5 +1,5 @@
 // Cambia VERSION en cada actualizacion para renovar el cache.
-const VERSION = "v1";
+const VERSION = "v2";
 const CACHE = "desglose-" + VERSION;
 const FILES = ["./", "./index.html", "./jspdf.umd.min.js", "./manifest.webmanifest", "./icons/icon-192.png", "./icons/icon-512.png"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES))); self.skipWaiting(); });
