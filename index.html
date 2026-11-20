@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b6bcb">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Desglose">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>Desglose de Ventanas</title>
+<style>
+:root{--bg:#f5f6f8;--card:#fff;--tx:#14181f;--mut:#667085;--bd:#e2e5ea;--ac:#0b6bcb;--acx:#fff;--warn:#fff4d6;--warnt:#6b4b00;--ok:#e8f5ee;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1318;--card:#181e26;--tx:#e8ecf2;--mut:#9aa5b4;--bd:#2a3340;--ac:#4a9df0;--acx:#07121f;--warn:#33280a;--warnt:#f3d98b;--ok:#12261b;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1318;--card:#181e26;--tx:#e8ecf2;--mut:#9aa5b4;--bd:#2a3340;--ac:#4a9df0;--acx:#07121f;--warn:#33280a;--warnt:#f3d98b;--ok:#12261b;color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{padding:18px 16px 6px;max-width:1000px;margin:auto;display:flex;justify-content:space-between;align-items:center;gap:10px}
+h1{font-size:20px;margin:0}h1 small{display:block;font-size:13px;color:var(--mut);font-weight:400}
+main{max-width:1000px;margin:auto;padding:10px 16px 40px;display:grid;gap:14px;grid-template-columns:1fr}
+@media(min-width:820px){main{grid-template-columns:340px 1fr}.full{grid-column:1/-1}}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:14px}
+h2{font-size:14px;margin:0 0 10px;text-transform:uppercase;letter-spacing:.04em;color:var(--mut)}
+label{display:block;font-size:13px;color:var(--mut);margin:8px 0 3px}
+input,select,textarea{width:100%;padding:10px;border:1px solid var(--bd);border-radius:10px;background:var(--bg);color:var(--tx);font:inherit}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.seg{display:flex;gap:6px}.seg button{flex:1}
+button{padding:10px 12px;border-radius:10px;border:1px solid var(--bd);background:var(--card);color:var(--tx);font:inherit;cursor:pointer}
+button.on,button.pri{background:var(--ac);color:var(--acx);border-color:var(--ac);font-weight:600}
+.warn{background:var(--warn);color:var(--warnt);border-radius:10px;padding:9px 12px;font-size:13px}
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:7px 6px;border-bottom:1px solid var(--bd);white-space:nowrap}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+tr.g td{background:var(--ok);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.item{display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--bd);font-size:14px}
+.mut{color:var(--mut)}
+details summary{cursor:pointer;font-weight:600}
+.grid4{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+#pv{display:none}
+body.pv header,body.pv main{display:none}
+body.pv #pv{display:block;max-width:1000px;margin:auto;padding:16px}
+#pv h2{text-transform:none;font-size:15px;color:var(--tx)}
+@media print{.noprint{display:none!important}body{background:#fff;color:#000}#pv,#pv h2{color:#000}#pv td,#pv th{border-color:#bbb}#pv tr.g td{background:#eee}}
+</style>
+</head>
+<body>
+<header>
+<h1>Desglose de Ventanas<small>Perfiles, vidrio y herrajes a partir del hueco</small></h1>
+<div class="seg noprint" id="units" style="width:170px"></div>
+</header>
+<main>
+<section class="card noprint">
+<h2>Hueco</h2>
+<label>Línea</label><select id="line"></select>
+<div class="row"><div><label>Ancho (<span class="u"></span>)</label><input id="A" type="text" inputmode="text" autocomplete="off" placeholder="ej. 36 1/2"></div>
+<div><label>Alto (<span class="u"></span>)</label><input id="H" type="text" inputmode="text" autocomplete="off" placeholder="ej. 48 3/4"></div></div>
+<label>Número de hojas</label><div class="seg" id="hojas"></div>
+<label>Cantidad de ventanas iguales</label><input id="Q" type="number" min="1" value="1" inputmode="numeric">
+<div class="acts"><button class="pri" id="add">Agregar al proyecto</button></div>
+</section>
+
+<section class="card">
+<h2>Desglose <span id="title" class="mut"></span></h2>
+<div class="tw"><table id="res"></table></div>
+<div id="empty" class="mut">Ingresa el ancho y el alto del hueco.</div>
+</section>
+
+<section class="card full noprint" id="cfg">
+<details>
+<summary>Descuentos y herrajes de la línea (editable)</summary>
+<div class="warn" style="margin:10px 0">Los valores iniciales son de ejemplo. Cada línea y proveedor tiene sus propios descuentos: ajústalos con tu catálogo antes de cortar. Se guardan en este navegador.</div>
+<div class="grid4" id="params"></div>
+<div class="acts"><button id="copyAll">Copiar estos valores a todas las líneas</button><button id="reset">Restablecer línea</button></div>
+</details>
+</section>
+
+<section class="card full noprint">
+<h2>Conversor</h2>
+<div class="row" style="max-width:420px"><div><label>Medida (acepta fracciones: 36 1/2)</label><input id="cv" type="text" inputmode="text" autocomplete="off" placeholder="ej. 5/8"></div><div><label>Unidad</label><select id="cu"><option>pulg</option><option>cm</option><option>mm</option></select></div></div>
+<div id="cvo" class="grid4" style="margin-top:12px"></div>
+<details style="margin-top:12px"><summary>Tabla de fracciones de pulgada</summary><div class="tw"><table id="ft"></table></div></details>
+</section>
+
+<section class="card full">
+<h2>Proyecto</h2>
+<div id="proj"></div>
+<div class="acts noprint"><button class="pri" id="pdf">Exportar PDF</button><button id="copy">Copiar resumen</button><button id="print">Imprimir</button><button id="clear">Vaciar</button></div>
+</section>
+</main>
+<div id="pv"></div>
+<script src="jspdf.umd.min.js"></script>
+<script>
+const LINES=["P-65","P-92","C-70","M-100 con tapa","M-100 sin tapa","Tradicional","AA","Puerta comercial"];
+const PL={mA:["Marco: descuento al ancho (mm)",10],mH:["Marco: descuento al alto (mm)",10],hA:["Hojas: descuento total al ancho (mm)",45],hH:["Hojas: descuento al alto (mm)",50],tr:["Traslape entre hojas (mm)",20],dh:["Hoja: descuento cabezal y base (mm)",45],dv:["Hoja: descuento parantes (mm)",35],gA:["Vidrio: descuento al ancho (mm)",20],gH:["Vidrio: descuento al alto (mm)",20],carr:["Carretillas por hoja",2],cier:["Cierres por hoja",1]};
+const DEF=()=>Object.fromEntries(Object.entries(PL).map(([k,v])=>[k,v[1]]));
+let S={unit:"cm",line:LINES[0],n:2,P:{},proj:[]};
+LINES.forEach(l=>S.P[l]=DEF());
+try{const r=JSON.parse(localStorage.getItem("desglose")||"null");if(r){S.unit=r.unit||S.unit;S.P=Object.assign(S.P,r.P||{});S.proj=r.proj||[];S.n=r.n||2;S.line=r.line||S.line}}catch(e){}
+const save=()=>{try{localStorage.setItem("desglose",JSON.stringify(S))}catch(e){}};
+const $=id=>document.getElementById(id);
+const F={mm:1,cm:10,"pulg":25.4};
+const toMM=v=>v*F[S.unit], fromMM=v=>v/F[S.unit];
+const gcd=(a,b)=>b?gcd(b,a%b):a;
+const frac=mm=>{const t=Math.round(Math.abs(mm)/25.4*16),w=Math.floor(t/16),r=t%16,g=r?gcd(r,16):1;return (mm<0?"-":"")+(r?(w?w+" ":"")+r/g+"/"+16/g:""+w)+'"'};
+const fmt=mm=>{if(S.unit==="pulg")return frac(mm);const d=S.unit==="mm"?0:1;return fromMM(mm).toFixed(d)+" "+S.unit};
+const show=mm=>mm?(S.unit==="pulg"?frac(mm).replace('"',""):+fromMM(mm).toFixed(S.unit==="mm"?0:1)):"";
+const num=s=>{s=String(s).replace(/["”″]/g,"").replace(",",".").replace("-"," ").trim();if(!s)return 0;let t=0;for(const p of s.split(/\s+/)){if(p.includes("/")){const[a,b]=p.split("/");t+=(parseFloat(a)||0)/(parseFloat(b)||1)}else t+=parseFloat(p)||0}return t};
+
+function calc(line,A,H,n,q){
+ const p=S.P[line],aH=(A-p.hA+(n-1)*p.tr)/n,hH=H-p.hH,gw=aH-p.gA,gh=hH-p.gH;
+ const rows=[["Marco"],["Cabezal y umbral",2*q,A-p.mA],["Jambas",2*q,H-p.mH],
+ ["Hojas"],["Cabezal y base",2*n*q,aH-p.dh],["Parantes",2*n*q,hH-p.dv],
+ ["Vidrio"],["Piezas de vidrio ("+n+" por ventana)",n*q,null,fmt(gw)+" × "+fmt(gh)],
+ ["Herrajes"],["Carretillas",p.carr*n*q,null,"pza"],["Cierres",p.cier*n*q,null,"pza"],
+ ["Burlete de vidrio",null,null,(2*(gw+gh)*n*q/1000).toFixed(2)+" m"]];
+ return {rows,aH,hH};
+}
+function table(rows){
+ return "<tr><th>Pieza</th><th class='n'>Cant.</th><th class='n'>Medida</th></tr>"+rows.map(r=>r.length===1?`<tr class="g"><td colspan="3">${r[0]}</td></tr>`:`<tr><td>${r[0]}</td><td class="n">${r[1]??""}</td><td class="n">${r[2]!=null?fmt(r[2]):r[3]}</td></tr>`).join("");
+}
+function read(){return{A:toMM(num($("A").value)),H:toMM(num($("H").value)),q:Math.max(1,parseInt($("Q").value)||1)}}
+function render(){
+ const{A,H,q}=read(),ok=A>0&&H>0;
+ $("empty").style.display=ok?"none":"block";
+ $("res").innerHTML=ok?table(calc(S.line,A,H,S.n,q).rows):"";
+ $("title").textContent=ok?`· ${S.line}, ${S.n} hojas`:"";
+ document.querySelectorAll(".u").forEach(e=>e.textContent=S.unit);
+ document.querySelectorAll("#units button").forEach(b=>b.classList.toggle("on",b.dataset.u===S.unit));
+ document.querySelectorAll("#hojas button").forEach(b=>b.classList.toggle("on",+b.dataset.n===S.n));
+ renderProj();save();
+}
+function renderProj(){
+ $("proj").innerHTML=S.proj.length?S.proj.map((it,i)=>`<div class="item"><span><b>${it.line}</b> · ${it.n} hojas · ${fmt(it.A)} × ${fmt(it.H)} · ${it.q} und</span><button class="noprint" onclick="rm(${i})">Quitar</button></div>`).join(""):"<span class='mut'>Aún no has agregado ventanas.</span>";
+}
+window.rm=i=>{S.proj.splice(i,1);render()};
+function textOf(){
+ return S.proj.map((it,i)=>{const c=calc(it.line,it.A,it.H,it.n,it.q);
+ return `${i+1}. ${it.line} · ${it.n} hojas · ${fmt(it.A)} × ${fmt(it.H)} · ${it.q} und\n`+c.rows.map(r=>r.length===1?`  [${r[0]}]`:`  ${r[0]}: ${r[1]!=null?r[1]+" × ":""}${r[2]!=null?fmt(r[2]):r[3]}`).join("\n")}).join("\n\n");
+}
+function params(){
+ const p=S.P[S.line];
+ $("params").innerHTML=Object.entries(PL).map(([k,v])=>`<div><label>${v[0]}</label><input type="number" step="any" data-k="${k}" value="${p[k]}"></div>`).join("");
+ document.querySelectorAll("#params input").forEach(i=>i.oninput=()=>{S.P[S.line][i.dataset.k]=parseFloat(i.value)||0;render()});
+}
+// init
+$("line").innerHTML=LINES.map(l=>`<option>${l}</option>`).join("");$("line").value=S.line;
+$("hojas").innerHTML=[1,2,3,4].map(n=>`<button data-n="${n}">${n}</button>`).join("");
+$("units").innerHTML=["mm","cm","pulg"].map(u=>`<button data-u="${u}">${u}</button>`).join("");
+$("line").onchange=e=>{S.line=e.target.value;if(S.line==="Puerta comercial"&&S.n>2)S.n=2;params();render()};
+document.querySelectorAll("#hojas button").forEach(b=>b.onclick=()=>{S.n=+b.dataset.n;render()});
+document.querySelectorAll("#units button").forEach(b=>b.onclick=()=>{const r=read();S.unit=b.dataset.u;const d=S.unit==="mm"?0:S.unit==="cm"?1:2;$("A").value=show(r.A);$("H").value=show(r.H);render()});
+["A","H","Q"].forEach(id=>$(id).oninput=render);
+$("add").onclick=()=>{const r=read();if(!(r.A>0&&r.H>0))return;S.proj.push({line:S.line,n:S.n,...r});render()};
+$("clear").onclick=()=>{S.proj=[];render()};
+function getItems(){return S.proj.length?S.proj:(()=>{const r=read();return r.A>0&&r.H>0?[{line:S.line,n:S.n,...r}]:[]})()}
+async function exportPDF(items){
+ items=items||getItems();
+ if(!items.length){alert("Ingresa las medidas o agrega ventanas al proyecto.");return}
+ let dl=null;try{dl=window.claude?await claude.use("downloads"):null}catch(e){}
+ if(!window.jspdf){alert("No se pudo generar el PDF aquí. Usa Imprimir y elige Guardar como PDF.");return}
+ const doc=new window.jspdf.jsPDF({unit:"mm",format:"letter"}),W=215.9,M=15,top=18,bot=262;
+ let y=top;
+ const pg=h=>{if(y+h>bot){doc.addPage();y=top}};
+ doc.setFont("helvetica","bold");doc.setFontSize(16);doc.text("Desglose de ventanas",M,y);
+ doc.setFont("helvetica","normal");doc.setFontSize(9);doc.setTextColor(110);doc.text(new Date().toLocaleDateString("es-DO"),W-M,y,{align:"right"});doc.setTextColor(0);y+=10;
+ items.forEach((it,i)=>{
+  const rows=calc(it.line,it.A,it.H,it.n,it.q).rows;
+  pg(22);doc.setFont("helvetica","bold");doc.setFontSize(11);
+  doc.text(`${i+1}. ${it.line} - ${it.n} hojas - ${fmt(it.A)} x ${fmt(it.H)} - ${it.q} und`,M,y);y+=7;
+  rows.forEach(r=>{
+   pg(8);
+   if(r.length===1){doc.setFillColor(232,240,236);doc.rect(M,y-4.2,W-2*M,6,"F");doc.setFont("helvetica","bold");doc.setFontSize(8);doc.text(r[0].toUpperCase(),M+2,y)}
+   else{doc.setFont("helvetica","normal");doc.setFontSize(10);doc.text(String(r[0]),M+2,y);doc.text(String(r[1]??""),135,y,{align:"right"});doc.text(r[2]!=null?fmt(r[2]):String(r[3]),W-M-2,y,{align:"right"});doc.setDrawColor(210);doc.line(M,y+1.8,W-M,y+1.8)}
+   y+=6.4;
+  });
+  y+=6;
+ });
+ pg(10);doc.setFont("helvetica","italic");doc.setFontSize(8);doc.setTextColor(110);
+ doc.text("Medidas calculadas con los descuentos configurados en la app. Verifica con tu catálogo antes de cortar.",M,y);
+ if(dl){try{await dl.save({filename:"desglose-ventanas.pdf",data:doc.output("blob")})}catch(e){if(!e||e.code!=="declined")alert("No se pudo guardar el PDF.")}}else{try{doc.save("desglose-ventanas.pdf")}catch(e){alert("No se pudo guardar el PDF.")}}
+}
+$("pdf").onclick=()=>exportPDF();
+function doPrint(){try{window.print()}catch(e){}}
+$("print").onclick=()=>{
+ const items=S.proj.length?S.proj:(()=>{const r=read();return r.A>0&&r.H>0?[{line:S.line,n:S.n,...r}]:[]})();
+ if(!items.length){alert("Ingresa las medidas o agrega ventanas al proyecto.");return}
+ $("pv").innerHTML=`<div class="noprint acts" style="margin:0 0 12px"><button class="pri" id="pd">Descargar PDF</button><button id="pp">Imprimir</button><button id="pc">Volver</button></div><h1>Desglose de ventanas</h1><div class="mut">${new Date().toLocaleDateString("es-DO")}</div>`+items.map((it,i)=>`<h2 style="margin-top:18px">${i+1}. ${it.line} · ${it.n} hojas · ${fmt(it.A)} × ${fmt(it.H)} · ${it.q} und</h2><div class="tw"><table>${table(calc(it.line,it.A,it.H,it.n,it.q).rows)}</table></div>`).join("");
+ document.body.classList.add("pv");window.scrollTo(0,0);
+ $("pp").onclick=doPrint;
+ $("pd").onclick=()=>exportPDF(items);
+ $("pc").onclick=()=>document.body.classList.remove("pv");
+ 
+};
+$("copy").onclick=async()=>{const t=textOf();if(!t)return;try{await navigator.clipboard.writeText(t);$("copy").textContent="Copiado"}catch(e){prompt("Copia el texto:",t)}setTimeout(()=>$("copy").textContent="Copiar resumen",1500)};
+$("copyAll").onclick=()=>{LINES.forEach(l=>S.P[l]={...S.P[S.line]});render()};
+$("reset").onclick=()=>{S.P[S.line]=DEF();params();render()};
+const MM={pulg:25.4,cm:10,mm:1};
+function conv(){const v=num($("cv").value),mm=v*MM[$("cu").value];
+ $("cvo").innerHTML=v>0?[["Milímetros",mm.toFixed(1)+" mm"],["Centímetros",(mm/10).toFixed(2)+" cm"],["Pulgadas decimal",(mm/25.4).toFixed(3)+'"'],["Pulgadas fracción (1/16)",frac(mm)]].map(([a,b])=>`<div class="card" style="padding:10px"><div class="mut" style="font-size:12px">${a}</div><b>${b}</b></div>`).join(""):"";}
+$("cv").oninput=conv;$("cu").onchange=conv;
+$("ft").innerHTML="<tr><th>Fracción</th><th class='n'>mm</th><th class='n'>Decimal</th></tr>"+Array.from({length:16},(_,i)=>i+1).map(i=>{const g=gcd(i,16),l=i===16?"1":i/g+"/"+16/g;return `<tr><td>${l}"</td><td class="n">${(i*25.4/16).toFixed(1)}</td><td class="n">${(i/16).toFixed(4)}</td></tr>`}).join("");
+params();render();
+if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
+</script>
+</body>
+</html>
