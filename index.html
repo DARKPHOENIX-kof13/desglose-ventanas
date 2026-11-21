@@ -32,6 +32,7 @@ button{padding:10px 12px;border-radius:10px;border:1px solid var(--bd);backgroun
 button.on,button.pri{background:var(--ac);color:var(--acx);border-color:var(--ac);font-weight:600}
 .warn{background:var(--warn);color:var(--warnt);border-radius:10px;padding:9px 12px;font-size:13px}
 .tw{overflow-x:auto}
+#inst:not([hidden]){display:flex;flex-wrap:wrap;align-items:center;gap:10px;justify-content:space-between}
 table{width:100%;border-collapse:collapse;font-size:14px}
 th,td{text-align:left;padding:7px 6px;border-bottom:1px solid var(--bd);white-space:nowrap}
 td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
@@ -55,7 +56,7 @@ body.pv #pv{display:block;max-width:1000px;margin:auto;padding:16px}
 <div class="seg noprint" id="units" style="width:170px"></div>
 </header>
 <main>
-<section class="card full noprint" id="inst" hidden style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;justify-content:space-between">
+<section class="card full noprint" id="inst" hidden>
 <div><b>Instala Deglo-Max en tu dispositivo</b><div class="mut" id="iMsg" style="font-size:13px">Se abre desde la pantalla de inicio, funciona sin internet y se actualiza sola.</div></div>
 <div class="acts" style="margin:0"><button class="pri" id="iBtn" hidden>Instalar app</button><a id="iApk" hidden style="text-decoration:none"><button>Descargar APK (Android)</button></a><button id="iX" aria-label="Cerrar">Ahora no</button></div>
 </section>
@@ -118,6 +119,7 @@ body.pv #pv{display:block;max-width:1000px;margin:auto;padding:16px}
 <div id="gOut" style="margin-top:12px"></div>
 </section>
 </main>
+<div class="mut noprint" style="text-align:center;font-size:12px;padding:0 0 18px">Deglo-Max · versión 9</div>
 <div id="pv"></div>
 <script src="jspdf.umd.min.js"></script>
 <script>
@@ -383,16 +385,20 @@ params();render();
  const $$=i=>document.getElementById(i),inst=$$("inst"),btn=$$("iBtn"),apk=$$("iApk"),msg=$$("iMsg"),ua=navigator.userAgent;
  const standalone=(window.matchMedia&&matchMedia("(display-mode: standalone)").matches)||navigator.standalone;
  if(standalone)return;
- let dp=null;const show=()=>{inst.hidden=false};
- window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();dp=e;btn.hidden=false;show()});
+ const ios=/iphone|ipad|ipod/i.test(ua),android=/android/i.test(ua),firefox=/firefox|fxios/i.test(ua);
+ let dp=null;
+ msg.textContent=ios?"En iPhone o iPad: abre esta página en Safari, pulsa Compartir y elige Añadir a pantalla de inicio.":
+  firefox?"Firefox no permite instalar apps. Abre esta página en Chrome o Edge.":
+  "Si no ves el botón Instalar, abre el menú ⋮ del navegador y elige Instalar aplicación o Añadir a pantalla de inicio.";
+ inst.hidden=false;
+ window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();dp=e;btn.hidden=false;msg.textContent="Se abre desde la pantalla de inicio, funciona sin internet y se actualiza sola."});
  window.addEventListener("appinstalled",()=>{inst.hidden=true});
- if(/iphone|ipad|ipod/i.test(ua)){msg.textContent="En iPhone o iPad: pulsa Compartir y elige Añadir a pantalla de inicio.";show()}
- btn.onclick=async()=>{if(!dp)return;dp.prompt();try{await dp.userChoice}catch(e){}dp=null;btn.hidden=true;if(apk.hidden)inst.hidden=true};
+ btn.onclick=async()=>{if(!dp)return;dp.prompt();try{await dp.userChoice}catch(e){}dp=null;btn.hidden=true};
  $$("iX").onclick=()=>{inst.hidden=true};
- if(/android/i.test(ua)){
+ if(android){
   fetch("https://api.github.com/repos/DARKPHOENIX-kof13/desglose-ventanas/releases/latest").then(r=>r.ok?r.json():null).then(j=>{
    const a=j&&(j.assets||[]).find(x=>/\.apk$/i.test(x.name));
-   if(a){apk.href=a.browser_download_url;apk.hidden=false;show()}}).catch(()=>{});
+   if(a){apk.href=a.browser_download_url;apk.hidden=false}}).catch(()=>{});
  }
 })();
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
