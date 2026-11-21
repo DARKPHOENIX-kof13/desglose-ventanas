@@ -23,3 +23,12 @@ Abre el enlace en Chrome > menú (3 puntos) > "Instalar aplicación".
 1. Reemplaza index.html en el repositorio con la versión nueva.
 2. Cambia `VERSION = "v1"` por `"v2"` en sw.js.
 3. Haz commit. Los usuarios reciben la versión nueva al abrir la app con internet. No hay que reinstalar el APK.
+
+## Descarga e instalación desde el enlace
+- Al abrir el enlace de GitHub Pages aparece el botón **Instalar app** (Android/Chrome y escritorio). En iPhone muestra la indicación de Añadir a pantalla de inicio.
+- La app instalada abre siempre la última versión publicada en GitHub: al actualizar el repositorio, todos los usuarios reciben el cambio al abrirla con internet.
+
+## Botón de APK para Android
+1. Genera el APK en pwabuilder.com con la URL de GitHub Pages.
+2. En GitHub: Releases > Draft a new release > sube el archivo .apk > Publish release.
+3. El botón **Descargar APK (Android)** aparece solo en la página, en los teléfonos Android, apuntando al APK de la última versión publicada.
