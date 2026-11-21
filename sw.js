@@ -1,5 +1,5 @@
 // Cambia VERSION en cada actualizacion para renovar el cache.
-const VERSION = "v6";
+const VERSION = "v7";
 const CACHE = "desglose-" + VERSION;
 const FILES = ["./", "./index.html", "./jspdf.umd.min.js", "./manifest.webmanifest", "./icons/icon-192.png", "./icons/icon-512.png", "./icons/apple-touch-icon.png", "./icons/favicon-64.png"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES))); self.skipWaiting(); });
