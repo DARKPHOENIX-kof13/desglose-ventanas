@@ -94,14 +94,18 @@ body.pv #pv{display:block;max-width:1000px;margin:auto;padding:16px}
 <section class="card full noprint" id="glass">
 <h2>Optimizador de vidrio</h2>
 <div class="mut" style="margin-bottom:8px" id="gInfo"></div>
+<div class="row">
+<div><label>Unidad de medida</label><select id="gU"><option value="pulg">Pulgadas (fracciones)</option><option value="mm">Milímetros</option></select></div>
+<div><label>Precisión de corte (hacia abajo)</label><select id="gS"><option value="16">1/16 pulg</option><option value="8">1/8 pulg</option><option value="4">1/4 pulg</option><option value="2">1/2 pulg</option><option value="1">1 pulg</option></select></div>
+</div>
 <label>Formato de plancha</label>
 <select id="gP"></select>
-<div class="mut" style="font-size:12px;margin:6px 0 10px">Los formatos cambian según el fabricante o el importador. Confirma con tu proveedor los que realmente vende, o escribe tus medidas.</div>
+<div class="mut" style="font-size:12px;margin:6px 0 10px">Los formatos cambian según el fabricante o el importador. Confirma con tu proveedor los que realmente vende, o escribe tus medidas. En pulgadas puedes usar fracciones: 96, 72 1/2, 36 5/8.</div>
 <div class="grid4">
-<div><label>Ancho de plancha (mm)</label><input id="gW" type="number" inputmode="decimal" step="any"></div>
-<div><label>Alto de plancha (mm)</label><input id="gH" type="number" inputmode="decimal" step="any"></div>
-<div><label>Grosor de corte (mm)</label><input id="gK" type="number" inputmode="decimal" step="any"></div>
-<div><label>Refilado por lado (mm)</label><input id="gT" type="number" inputmode="decimal" step="any"></div>
+<div><label>Ancho de plancha (<span class="gu"></span>)</label><input id="gW" type="text" inputmode="text" autocomplete="off"></div>
+<div><label>Alto de plancha (<span class="gu"></span>)</label><input id="gH" type="text" inputmode="text" autocomplete="off"></div>
+<div><label>Grosor de corte (<span class="gu"></span>)</label><input id="gK" type="text" inputmode="text" autocomplete="off"></div>
+<div><label>Refilado por lado (<span class="gu"></span>)</label><input id="gT" type="text" inputmode="text" autocomplete="off"></div>
 </div>
 <label style="display:flex;gap:8px;align-items:center"><input id="gR" type="checkbox" style="width:auto"> Permitir girar las piezas</label>
 <div class="acts"><button class="pri" id="gGo">Optimizar vidrio</button><button id="gCmp">Comparar formatos</button><button id="gPdf">Exportar plan en PDF</button><button id="gSave">Guardar mi medida</button><button id="gDel">Quitar medida guardada</button></div>
@@ -221,8 +225,18 @@ function conv(){const v=num($("cv").value),mm=v*MM[$("cu").value];
  $("cvo").innerHTML=v>0?[["Milímetros",mm.toFixed(1)+" mm"],["Centímetros",(mm/10).toFixed(2)+" cm"],["Pulgadas decimal",(mm/25.4).toFixed(3)+'"'],["Pulgadas fracción (1/16)",frac(mm)]].map(([a,b])=>`<div class="card" style="padding:10px"><div class="mut" style="font-size:12px">${a}</div><b>${b}</b></div>`).join(""):"";}
 $("cv").oninput=conv;$("cu").onchange=conv;
 $("ft").innerHTML="<tr><th>Fracción</th><th class='n'>mm</th><th class='n'>Decimal</th></tr>"+Array.from({length:16},(_,i)=>i+1).map(i=>{const g=gcd(i,16),l=i===16?"1":i/g+"/"+16/g;return `<tr><td>${l}"</td><td class="n">${(i*25.4/16).toFixed(1)}</td><td class="n">${(i/16).toFixed(4)}</td></tr>`}).join("");
-const GL={W:2440,H:1830,k:0,t:0,r:true};let GLR=null;
+const GL={W:2440,H:1830,k:0,t:0,r:true,u:"pulg",s:16,mine:[]};let GLR=null;
 try{Object.assign(GL,JSON.parse(localStorage.getItem("desglose_glass")||"{}"))}catch(e){}
+GL.mine=GL.mine||[];
+const gId=i=>document.getElementById(i);
+const gU=()=>GL.u==="pulg";
+const gd=mm=>gU()?frac(mm).replace('"',""):String(Math.round(mm));
+const gdu=mm=>gU()?frac(mm):Math.round(mm)+" mm";
+const gIn=mm=>gU()?(mm>0?frac(mm).replace('"',""):"0"):String(Math.round(mm*10)/10);
+const gMM=v=>num(v)*(gU()?25.4:1);
+const gq=x=>{if(!gU())return x;const st=25.4/GL.s;return Math.floor(x/st+1e-6)*st};
+const gSv=()=>{try{localStorage.setItem("desglose_glass",JSON.stringify(GL))}catch(e){}};
+const gAr=m2=>gU()?(m2*10.7639).toFixed(1)+" pie²":m2.toFixed(2)+" m²";
 /*PACK_START*/
 const GORD=[(a,b)=>b.w*b.h-a.w*a.h,(a,b)=>Math.max(b.w,b.h)-Math.max(a.w,a.h),(a,b)=>b.h-a.h||b.w-a.w,(a,b)=>b.w-a.w||b.h-a.h];
 function gPack(pcs,W,H,k,rot,ord){
@@ -233,24 +247,43 @@ function gPack(pcs,W,H,k,rot,ord){
  for(const p of L){
   let best=null;
   sheets.forEach((s,si)=>{const c=find(s,si,p);if(c&&(!best||c.sc<best.sc))best=c});
-  if(!best){sheets.push({free:[{x:0,y:0,w:W+k,h:H+k}],items:[]});best=find(sheets[sheets.length-1],sheets.length-1,p)}
+  if(!best){sheets.push({free:[{x:0,y:0,w:W+k,h:H+k}],items:[],cuts:[]});best=find(sheets[sheets.length-1],sheets.length-1,p)}
   const s=sheets[best.si],f=s.free[best.fi],pw=best.w+k,ph=best.h+k;
   s.items.push({x:f.x,y:f.y,w:best.w,h:best.h,id:p.id,r:best.r});
   s.free.splice(best.fi,1);
-  const lw=f.w-pw,lh=f.h-ph;let a,b;
-  if(lw<lh){a={x:f.x+pw,y:f.y,w:lw,h:ph};b={x:f.x,y:f.y+ph,w:f.w,h:lh}}else{a={x:f.x+pw,y:f.y,w:lw,h:f.h};b={x:f.x,y:f.y+ph,w:pw,h:lh}}
+  const lw=f.w-pw,lh=f.h-ph,tw=f.x+f.w>=W+k-0.5?f.w-k:f.w,th=f.y+f.h>=H+k-0.5?f.h-k:f.h;let a,b;
+  if(lw<lh){a={x:f.x+pw,y:f.y,w:lw,h:ph};b={x:f.x,y:f.y+ph,w:f.w,h:lh};
+   if(lh>0.5)s.cuts.push({o:"H",rel:best.h,tw,th});
+   if(lw>0.5)s.cuts.push({o:"V",rel:best.w,tw,th:best.h})}
+  else{a={x:f.x+pw,y:f.y,w:lw,h:f.h};b={x:f.x,y:f.y+ph,w:pw,h:lh};
+   if(lw>0.5)s.cuts.push({o:"V",rel:best.w,tw,th});
+   if(lh>0.5)s.cuts.push({o:"H",rel:best.h,tw:best.w,th})}
   [a,b].forEach(r=>{if(r.w>0.5&&r.h>0.5)s.free.push(r)});
  }
  return sheets;
 }
 /*PACK_END*/
-const gId=i=>document.getElementById(i);
-const gn=mm=>S.unit==="pulg"?frac(mm).replace('"',""):S.unit==="mm"?Math.round(mm):(mm/10).toFixed(1);
-function gPieces(){const out=[];getItems().forEach((it,i)=>{const p=S.P[it.line],aH=(it.A-p.hA+(it.n-1)*p.tr)/it.n,gw=aH-p.gA,gh=it.H-p.hH-p.gH;if(gw>0&&gh>0)for(let c=0;c<it.n*it.q;c++)out.push({w:gw,h:gh,id:i+1})});return out}
+const GFM=[
+["Estándar de taller",[["2440 × 1830 mm (≈ 96 × 72 pulg)",2440,1830],["1840 × 1220 mm (≈ 72 × 48 pulg)",1840,1220],["1220 × 920 mm (≈ 48 × 36 pulg)",1220,920]]],
+["Float europeo (Pilkington, Saint-Gobain)",[["3210 × 2250 mm",3210,2250],["3210 × 2550 mm",3210,2550],["6000 × 3210 mm (jumbo)",6000,3210]]],
+["Vitro / México",[["3600 × 2600 mm",3600,2600],["2600 × 1800 mm",2600,1800],["5180 × 3300 mm",5180,3300],["6100 × 3300 mm (jumbo)",6100,3300]]]];
+function gPieces(){const out=[];getItems().forEach((it,i)=>{const p=S.P[it.line],aH=(it.A-p.hA+(it.n-1)*p.tr)/it.n,gw=gq(aH-p.gA),gh=gq(it.H-p.hH-p.gH);if(gw>0&&gh>0)for(let c=0;c<it.n*it.q;c++)out.push({w:gw,h:gh,id:i+1})});return out}
 window.glassUpd=()=>{const n=gPieces().length;gId("gInfo").textContent=n?`${n} piezas de vidrio del proyecto (o de la ventana en pantalla).`:"Agrega ventanas al proyecto para obtener las piezas de vidrio."};
+const gRead=(id,key)=>{const v=gId(id).value.trim();if(v!==gIn(GL[key]))GL[key]=gMM(v)};
+function gRd(){gRead("gW","W");gRead("gH","H");gRead("gK","k");gRead("gT","t");GL.r=gId("gR").checked;GL.s=+gId("gS").value||16;gSv()}
+function gSet(){["W","H","k","t"].forEach(k=>gId("g"+({W:"W",H:"H",k:"K",t:"T"})[k]).value=gIn(GL[k]));document.querySelectorAll(".gu").forEach(e=>e.textContent=gU()?"pulg":"mm");gId("gU").value=GL.u;gId("gS").value=GL.s;gId("gS").disabled=!gU();gId("gR").checked=GL.r}
+function gFill(){
+ let h='<option value="">Personalizada (escribe las medidas)</option>';
+ GFM.forEach((g,gi)=>{h+=`<optgroup label="${g[0]}">`+g[1].map((f,fi)=>`<option value="${gi}-${fi}">${f[0]}</option>`).join("")+"</optgroup>"});
+ if(GL.mine.length)h+='<optgroup label="Mis medidas">'+GL.mine.map((m,i)=>`<option value="m-${i}">${gd(m[0])} × ${gd(m[1])} ${gU()?"pulg":"mm"}</option>`).join("")+"</optgroup>";
+ gId("gP").innerHTML=h;gSync();
+}
+function gSync(){const w=gMM(gId("gW").value),h=gMM(gId("gH").value);let v="";
+ GFM.forEach((g,gi)=>g[1].forEach((f,fi)=>{if(Math.abs(f[1]-w)<1&&Math.abs(f[2]-h)<1)v=gi+"-"+fi}));
+ GL.mine.forEach((m,i)=>{if(!v&&Math.abs(m[0]-w)<1&&Math.abs(m[1]-h)<1)v="m-"+i});
+ gId("gP").value=v}
 function gRun(){
- GL.W=+gId("gW").value||0;GL.H=+gId("gH").value||0;GL.k=+gId("gK").value||0;GL.t=+gId("gT").value||0;GL.r=gId("gR").checked;
- try{localStorage.setItem("desglose_glass",JSON.stringify(GL))}catch(e){}
+ gRd();
  const out=gId("gOut"),Wu=GL.W-2*GL.t,Hu=GL.H-2*GL.t;GLR=null;
  const pcs=gPieces();
  if(!pcs.length){out.innerHTML="<div class='mut'>No hay piezas de vidrio todavía.</div>";return}
@@ -261,71 +294,70 @@ function gRun(){
  let best=null;
  for(const o of GORD){const sh=gPack(ok,Wu,Hu,GL.k,GL.r,o),sc=sh.length*1e12+sh[sh.length-1].items.reduce((a,i)=>a+i.w*i.h,0);if(!best||sc<best.sc)best={sh,sc}}
  const sh=best.sh,n=sh.length,used=ok.reduce((a,p)=>a+p.w*p.h,0);
- GLR={sheets:sh,W:GL.W,H:GL.H,k:GL.k,t:GL.t};
+ const grp={};ok.forEach(p=>{const key=p.id+"|"+p.w+"|"+p.h;grp[key]=grp[key]||{id:p.id,w:p.w,h:p.h,c:0};grp[key].c++});
+ const list=Object.values(grp).sort((a,b)=>a.id-b.id||b.w*b.h-a.w*a.h);
+ GLR={sheets:sh,list,W:GL.W,H:GL.H,k:GL.k,t:GL.t};
  const fs=Math.max(10,Math.min(GL.W,GL.H)/40);
  const card=(a,b)=>`<div class="card" style="padding:10px"><div class="mut" style="font-size:12px">${a}</div><b>${b}</b></div>`;
- out.innerHTML=warn+`<div class="grid4">${card("Planchas necesarias",n)}${card("Aprovechamiento",(used/(n*GL.W*GL.H)*100).toFixed(1)+"%")}${card("Desperdicio",((n*GL.W*GL.H-used)/1e6).toFixed(2)+" m²")}${card("Piezas",ok.length)}</div>`+
+ out.innerHTML=warn+`<div class="grid4">${card("Planchas necesarias",n)}${card("Aprovechamiento",(used/(n*GL.W*GL.H)*100).toFixed(1)+"%")}${card("Desperdicio",gAr((n*GL.W*GL.H-used)/1e6))}${card("Piezas",ok.length)}</div>`+
+ `<h2 style="margin-top:14px">Lista de cortes${gU()?" (medidas redondeadas hacia abajo a 1/"+GL.s+" pulg)":""}</h2><div class="tw"><table><tr><th>Ventana</th><th class="n">Cant.</th><th class="n">Ancho × Alto</th></tr>`+list.map(x=>`<tr><td>V${x.id}</td><td class="n">${x.c}</td><td class="n">${gdu(x.w)} × ${gdu(x.h)}</td></tr>`).join("")+`</table></div>`+
  sh.map((s,si)=>{const us=s.items.reduce((a,i)=>a+i.w*i.h,0)/(GL.W*GL.H)*100;
   return `<h2 style="margin-top:14px">Plancha ${si+1} de ${n} · ${us.toFixed(1)}% usada</h2><svg viewBox="0 0 ${GL.W} ${GL.H}" style="width:100%;max-width:720px;height:auto;border:1px solid var(--bd);border-radius:6px"><rect width="${GL.W}" height="${GL.H}" fill="var(--bg)"/>`+
   s.items.map(it=>{const x=it.x+GL.t,y=it.y+GL.t,
    t1=it.w>fs*3&&it.h>fs*1.6?`<text x="${x+it.w/2}" y="${y+it.h/2}" font-size="${fs}" text-anchor="middle" fill="#111" font-family="system-ui">V${it.id}</text>`:"",
-   t2=it.w>fs*6&&it.h>fs*3.2?`<text x="${x+it.w/2}" y="${y+it.h/2+fs*1.15}" font-size="${fs*.8}" text-anchor="middle" fill="#222" font-family="system-ui">${gn(it.w)} × ${gn(it.h)}</text>`:"";
-   return `<rect x="${x}" y="${y}" width="${it.w}" height="${it.h}" fill="hsl(${(it.id*67)%360} 55% 72%)" stroke="#345" stroke-width="${fs/12}"/>`+t1+t2}).join("")+`</svg>`}).join("");
+   t2=it.w>fs*7&&it.h>fs*3.2?`<text x="${x+it.w/2}" y="${y+it.h/2+fs*1.15}" font-size="${fs*.8}" text-anchor="middle" fill="#222" font-family="system-ui">${gd(it.w)} × ${gd(it.h)}</text>`:"";
+   return `<rect x="${x}" y="${y}" width="${it.w}" height="${it.h}" fill="hsl(${(it.id*67)%360} 55% 72%)" stroke="#345" stroke-width="${fs/12}"/>`+t1+t2}).join("")+`</svg>`+
+  `<details style="margin-top:8px"><summary>Secuencia de cortes de la plancha ${si+1} (${s.cuts.length})</summary><ol style="margin:8px 0 0;padding-left:22px">`+(GL.t>0?`<li>Refilado: quitar ${gdu(GL.t)} por cada lado.</li>`:"")+s.cuts.map(c=>`<li>${c.o==="V"?"Vertical":"Horizontal"}: medir <b>${gdu(c.rel)}</b> desde el borde ${c.o==="V"?"izquierdo":"superior"} del tramo (${gd(c.tw)} × ${gd(c.th)}).</li>`).join("")+`</ol></details>`}).join("");
 }
-async function gPdf(){
- if(!GLR)gRun();if(!GLR)return;
- if(!window.jspdf){alert("No se pudo cargar el generador de PDF.");return}
- const doc=new window.jspdf.jsPDF({unit:"mm",format:"letter",orientation:"landscape"}),PW=279.4,PH=215.9,M=12,pal=[[173,216,230],[255,218,185],[200,230,200],[230,200,230],[255,245,170],[210,210,240]];
- GLR.sheets.forEach((s,si)=>{
-  if(si)doc.addPage();
-  doc.setFont("helvetica","bold");doc.setFontSize(13);doc.text(`Plan de corte de vidrio - plancha ${si+1} de ${GLR.sheets.length}`,M,M+4);
-  doc.setFont("helvetica","normal");doc.setFontSize(9);doc.text(`Plancha ${Math.round(GLR.W)} x ${Math.round(GLR.H)} mm - corte ${GLR.k} mm - refilado ${GLR.t} mm - medidas en mm`,M,M+10);
-  const sc=Math.min((PW-2*M)/GLR.W,(PH-2*M-16)/GLR.H),ox=M,oy=M+16;
-  doc.setDrawColor(60);doc.rect(ox,oy,GLR.W*sc,GLR.H*sc);
-  s.items.forEach(it=>{const x=ox+(it.x+GLR.t)*sc,y=oy+(it.y+GLR.t)*sc,w=it.w*sc,h=it.h*sc;
-   doc.setFillColor(...pal[it.id%6]);doc.rect(x,y,w,h,"FD");
-   doc.setFontSize(7);doc.setTextColor(0);
-   if(w>14&&h>6)doc.text("V"+it.id,x+w/2,y+h/2,{align:"center"});
-   if(w>22&&h>11)doc.text(`${Math.round(it.w)} x ${Math.round(it.h)}`,x+w/2,y+h/2+3.5,{align:"center"})});
- });
- let dl=null;try{dl=window.claude?await claude.use("downloads"):null}catch(e){}
- if(dl){try{await dl.save({filename:"plan-vidrio.pdf",data:doc.output("blob")})}catch(e){if(!e||e.code!=="declined")alert("No se pudo guardar el PDF.")}}
- else{try{doc.save("plan-vidrio.pdf")}catch(e){alert("No se pudo guardar el PDF.")}}
-}
-gId("gW").value=GL.W;gId("gH").value=GL.H;gId("gK").value=GL.k;gId("gT").value=GL.t;gId("gR").checked=GL.r;
-const GFM=[
-["Estándar de taller",[["2440 × 1830 mm (≈ 96 × 72 pulg)",2440,1830],["1840 × 1220 mm (≈ 72 × 48 pulg)",1840,1220],["1220 × 920 mm (≈ 48 × 36 pulg)",1220,920]]],
-["Float europeo (Pilkington, Saint-Gobain)",[["3210 × 2250 mm",3210,2250],["3210 × 2550 mm",3210,2550],["6000 × 3210 mm (jumbo)",6000,3210]]],
-["Vitro / México",[["3600 × 2600 mm",3600,2600],["2600 × 1800 mm",2600,1800],["5180 × 3300 mm",5180,3300],["6100 × 3300 mm (jumbo)",6100,3300]]]];
-GL.mine=GL.mine||[];
-const gSv=()=>{try{localStorage.setItem("desglose_glass",JSON.stringify(GL))}catch(e){}};
-function gFill(){
- let h='<option value="">Personalizada (escribe las medidas)</option>';
- GFM.forEach((g,gi)=>{h+=`<optgroup label="${g[0]}">`+g[1].map((f,fi)=>`<option value="${gi}-${fi}">${f[0]}</option>`).join("")+"</optgroup>"});
- if(GL.mine.length)h+='<optgroup label="Mis medidas">'+GL.mine.map((m,i)=>`<option value="m-${i}">${m[0]} × ${m[1]} mm</option>`).join("")+"</optgroup>";
- gId("gP").innerHTML=h;gSync();
-}
-function gSync(){const w=+gId("gW").value,h=+gId("gH").value;let v="";
- GFM.forEach((g,gi)=>g[1].forEach((f,fi)=>{if(f[1]===w&&f[2]===h)v=gi+"-"+fi}));
- GL.mine.forEach((m,i)=>{if(!v&&m[0]===w&&m[1]===h)v="m-"+i});
- gId("gP").value=v}
-gId("gP").onchange=e=>{const v=e.target.value;if(!v)return;let f;if(v[0]==="m")f=[0,...GL.mine[+v.slice(2)]];else{const[a,b]=v.split("-");f=GFM[a][1][b]}gId("gW").value=f[1];gId("gH").value=f[2];gRun()};
-["gW","gH"].forEach(i=>gId(i).addEventListener("input",gSync));
-gId("gSave").onclick=()=>{const w=+gId("gW").value,h=+gId("gH").value;if(!(w>0&&h>0))return;if(!GL.mine.some(m=>m[0]===w&&m[1]===h))GL.mine.push([w,h]);gSv();gFill()};
-gId("gDel").onclick=()=>{const w=+gId("gW").value,h=+gId("gH").value;GL.mine=GL.mine.filter(m=>!(m[0]===w&&m[1]===h));gSv();gFill()};
 function gCmp(){
- const k=+gId("gK").value||0,t=+gId("gT").value||0,r=gId("gR").checked,pcs=gPieces(),out=gId("gCmpOut");
+ gRd();const k=GL.k,t=GL.t,r=GL.r,pcs=gPieces(),out=gId("gCmpOut");
  if(!pcs.length){out.innerHTML="<div class='mut'>No hay piezas de vidrio todavía.</div>";return}
- const fm=[];GFM.forEach(g=>g[1].forEach(f=>fm.push(f)));GL.mine.forEach(m=>fm.push([m[0]+" × "+m[1]+" mm (mía)",m[0],m[1]]));
+ const fm=[];GFM.forEach(g=>g[1].forEach(f=>fm.push(f)));GL.mine.forEach(m=>fm.push([gd(m[0])+" × "+gd(m[1])+(gU()?" pulg":" mm")+" (mía)",m[0],m[1]]));
  const rows=fm.map(([nm,W,H])=>{const Wu=W-2*t,Hu=H-2*t,fit=p=>(p.w<=Wu&&p.h<=Hu)||(r&&p.h<=Wu&&p.w<=Hu),ok=pcs.filter(fit);
   if(ok.length<pcs.length)return{nm,bad:pcs.length-ok.length};
   let b=null;for(const o of GORD){const sh=gPack(ok,Wu,Hu,k,r,o);if(!b||sh.length<b.length)b=sh}
   const used=ok.reduce((a,p)=>a+p.w*p.h,0),n=b.length;return{nm,n,waste:(n*W*H-used)/1e6,util:used/(n*W*H)*100}});
  const good=rows.filter(x=>!x.bad).sort((a,b)=>a.waste-b.waste),bad=rows.filter(x=>x.bad);
- out.innerHTML="<h2>Comparación de formatos</h2><div class='tw'><table><tr><th>Formato</th><th class='n'>Planchas</th><th class='n'>Aprovech.</th><th class='n'>Desperdicio</th><th></th></tr>"+good.map((x,i)=>`<tr><td>${x.nm}</td><td class="n">${x.n}</td><td class="n">${x.util.toFixed(1)}%</td><td class="n">${x.waste.toFixed(2)} m²</td><td>${i===0?"Menor desperdicio":""}</td></tr>`).join("")+bad.map(x=>`<tr><td>${x.nm}</td><td colspan="4" class="mut">${x.bad} pieza(s) no caben</td></tr>`).join("")+"</table></div><div class='mut' style='font-size:12px;margin-top:6px'>Compara solo el desperdicio de corte. El precio por m² y la disponibilidad de cada formato los define tu proveedor.</div>"}
-gId("gCmp").onclick=gCmp;
-gFill();
-gId("gGo").onclick=gRun;gId("gPdf").onclick=gPdf;
+ out.innerHTML="<h2>Comparación de formatos</h2><div class='tw'><table><tr><th>Formato</th><th class='n'>Planchas</th><th class='n'>Aprovech.</th><th class='n'>Desperdicio</th><th></th></tr>"+good.map((x,i)=>`<tr><td>${x.nm}</td><td class="n">${x.n}</td><td class="n">${x.util.toFixed(1)}%</td><td class="n">${gAr(x.waste)}</td><td>${i===0?"Menor desperdicio":""}</td></tr>`).join("")+bad.map(x=>`<tr><td>${x.nm}</td><td colspan="4" class="mut">${x.bad} pieza(s) no caben</td></tr>`).join("")+"</table></div><div class='mut' style='font-size:12px;margin-top:6px'>Compara solo el desperdicio de corte. El precio por m² y la disponibilidad de cada formato los define tu proveedor.</div>"}
+async function gPdf(){
+ if(!GLR)gRun();if(!GLR)return;
+ if(!window.jspdf){alert("No se pudo cargar el generador de PDF.");return}
+ const doc=new window.jspdf.jsPDF({unit:"mm",format:"letter",orientation:"landscape"}),PW=279.4,PH=215.9,M=12,pal=[[173,216,230],[255,218,185],[200,230,200],[230,200,230],[255,245,170],[210,210,240]];
+ const un=gU()?"pulg":"mm",P=s=>s.replace(/"/g,"").replace(/ ?pulg$/,""),q=mm=>gU()?frac(mm):Math.round(mm)+" mm";
+ doc.setFont("helvetica","bold");doc.setFontSize(14);doc.text("Plan de corte de vidrio",M,M+4);
+ doc.setFont("helvetica","normal");doc.setFontSize(9);
+ doc.text(`Plancha ${q(GLR.W)} x ${q(GLR.H)} - corte ${q(GLR.k)} - refilado ${q(GLR.t)} por lado${gU()?" - piezas redondeadas hacia abajo a 1/"+GL.s+" pulg":""}`,M,M+10);
+ let y=M+20;doc.setFont("helvetica","bold");doc.setFontSize(10);doc.text("Ventana",M,y);doc.text("Cant.",110,y,{align:"right"});doc.text("Ancho x Alto",PW-M,y,{align:"right"});y+=2;doc.line(M,y,PW-M,y);y+=6;
+ doc.setFont("helvetica","normal");
+ GLR.list.forEach(x=>{if(y>PH-M){doc.addPage();y=M+4}doc.text("V"+x.id,M,y);doc.text(String(x.c),110,y,{align:"right"});doc.text(`${q(x.w)} x ${q(x.h)}`,PW-M,y,{align:"right"});y+=6});
+ GLR.sheets.forEach((s,si)=>{
+  doc.addPage();
+  doc.setFont("helvetica","bold");doc.setFontSize(13);doc.text(`Plancha ${si+1} de ${GLR.sheets.length}`,M,M+4);
+  const sc=Math.min((PW-2*M)/GLR.W,(PH-2*M-12)/GLR.H),ox=M,oy=M+10;
+  doc.setDrawColor(60);doc.rect(ox,oy,GLR.W*sc,GLR.H*sc);
+  s.items.forEach(it=>{const x=ox+(it.x+GLR.t)*sc,yy=oy+(it.y+GLR.t)*sc,w=it.w*sc,h=it.h*sc;
+   doc.setFillColor(...pal[it.id%6]);doc.rect(x,yy,w,h,"FD");
+   doc.setFontSize(7);doc.setFont("helvetica","normal");doc.setTextColor(0);
+   if(w>14&&h>6)doc.text("V"+it.id,x+w/2,yy+h/2,{align:"center"});
+   if(w>30&&h>11)doc.text(`${P(q(it.w))} x ${P(q(it.h))}`,x+w/2,yy+h/2+3.5,{align:"center"})});
+  doc.addPage();y=M+4;
+  doc.setFont("helvetica","bold");doc.setFontSize(12);doc.text(`Secuencia de cortes - plancha ${si+1}`,M,y);y+=8;doc.setFont("helvetica","normal");doc.setFontSize(10);
+  const L=[];if(GLR.t>0)L.push(`Refilado: quitar ${q(GLR.t)} por cada lado.`);
+  s.cuts.forEach((c,i)=>L.push(`${i+1}. ${c.o==="V"?"Vertical":"Horizontal"}: medir ${q(c.rel)} desde el borde ${c.o==="V"?"izquierdo":"superior"} del tramo (${P(q(c.tw))} x ${P(q(c.th))})`));
+  L.forEach(t=>{if(y>PH-M){doc.addPage();y=M+4}doc.text(t,M,y);y+=6});
+ });
+ let dl=null;try{dl=window.claude?await claude.use("downloads"):null}catch(e){}
+ if(dl){try{await dl.save({filename:"plan-vidrio.pdf",data:doc.output("blob")})}catch(e){if(!e||e.code!=="declined")alert("No se pudo guardar el PDF.")}}
+ else{try{doc.save("plan-vidrio.pdf")}catch(e){alert("No se pudo guardar el PDF.")}}
+}
+gId("gU").onchange=e=>{gRd();GL.u=e.target.value;gSv();gSet();gFill();if(gId("gOut").innerHTML)gRun()};
+gId("gS").onchange=()=>{gRd();gRun()};
+gId("gP").onchange=e=>{const v=e.target.value;if(!v)return;let f;if(v[0]==="m")f=[0,...GL.mine[+v.slice(2)]];else{const[a,b]=v.split("-");f=GFM[a][1][b]}GL.W=f[1];GL.H=f[2];gSv();gSet();gRun()};
+["gW","gH"].forEach(i=>gId(i).addEventListener("input",gSync));
+gId("gSave").onclick=()=>{gRd();if(!(GL.W>0&&GL.H>0))return;const w=Math.round(GL.W),h=Math.round(GL.H);if(!GL.mine.some(m=>m[0]===w&&m[1]===h))GL.mine.push([w,h]);gSv();gFill()};
+gId("gDel").onclick=()=>{gRd();GL.mine=GL.mine.filter(m=>!(Math.abs(m[0]-GL.W)<1&&Math.abs(m[1]-GL.H)<1));gSv();gFill()};
+gId("gCmp").onclick=gCmp;gId("gGo").onclick=gRun;gId("gPdf").onclick=gPdf;
+gSet();gFill();
 
 params();render();
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
