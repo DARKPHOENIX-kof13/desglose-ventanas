@@ -1,7 +1,7 @@
 {
-  "name": "Desglose de Ventanas",
-  "short_name": "Desglose",
-  "description": "Calculo de cortes de perfiles, vidrio y herrajes de ventanas de aluminio.",
+  "name": "DEGLO-MAX",
+  "short_name": "DEGLO-MAX",
+  "description": "Desglose de ventanas de aluminio: cortes de perfiles, vidrio y herrajes.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

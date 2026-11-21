@@ -1,4 +1,4 @@
-# Desglose de Ventanas (versión instalable)
+# DEGLO-MAX (versión instalable)
 
 Archivos: index.html, manifest.webmanifest, sw.js, jspdf.umd.min.js, carpeta icons/.
 
