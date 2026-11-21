@@ -94,6 +94,9 @@ body.pv #pv{display:block;max-width:1000px;margin:auto;padding:16px}
 <section class="card full noprint" id="glass">
 <h2>Optimizador de vidrio</h2>
 <div class="mut" style="margin-bottom:8px" id="gInfo"></div>
+<label>Formato de plancha</label>
+<select id="gP"></select>
+<div class="mut" style="font-size:12px;margin:6px 0 10px">Los formatos cambian según el fabricante o el importador. Confirma con tu proveedor los que realmente vende, o escribe tus medidas.</div>
 <div class="grid4">
 <div><label>Ancho de plancha (mm)</label><input id="gW" type="number" inputmode="decimal" step="any"></div>
 <div><label>Alto de plancha (mm)</label><input id="gH" type="number" inputmode="decimal" step="any"></div>
@@ -101,7 +104,8 @@ body.pv #pv{display:block;max-width:1000px;margin:auto;padding:16px}
 <div><label>Refilado por lado (mm)</label><input id="gT" type="number" inputmode="decimal" step="any"></div>
 </div>
 <label style="display:flex;gap:8px;align-items:center"><input id="gR" type="checkbox" style="width:auto"> Permitir girar las piezas</label>
-<div class="acts"><button class="pri" id="gGo">Optimizar vidrio</button><button id="gPdf">Exportar plan en PDF</button></div>
+<div class="acts"><button class="pri" id="gGo">Optimizar vidrio</button><button id="gCmp">Comparar formatos</button><button id="gPdf">Exportar plan en PDF</button><button id="gSave">Guardar mi medida</button><button id="gDel">Quitar medida guardada</button></div>
+<div id="gCmpOut" style="margin-top:12px"></div>
 <div id="gOut" style="margin-top:12px"></div>
 </section>
 </main>
@@ -126,8 +130,8 @@ const num=s=>{s=String(s).replace(/["”″]/g,"").replace(",",".").replace("-",
 
 function calc(line,A,H,n,q){
  const p=S.P[line],aH=(A-p.hA+(n-1)*p.tr)/n,hH=H-p.hH,gw=aH-p.gA,gh=hH-p.gH;
- const rows=[["Marco"],["Cabezal y umbral",2*q,A-p.mA],["Jambas",2*q,H-p.mH],
- ["Hojas"],["Cabezal y base",2*n*q,aH-p.dh],["Parantes",2*n*q,hH-p.dv],
+ const rows=[["Marco"],["Cabezal Marco",q,A-p.mA],["Cabezal Riel",q,A-p.mA],["Lateral",2*q,H-p.mH],
+ ["Hojas"],["Cabezal Móvil",n*q,aH-p.dh],["Alfeizar",n*q,aH-p.dh],["Llavín",n*q,hH-p.dv],["Enganche",n*q,hH-p.dv],
  ["Vidrio"],["Piezas de vidrio ("+n+" por ventana)",n*q,null,fmt(gw)+" × "+fmt(gh)],
  ["Herrajes"],["Carretillas",p.carr*n*q,null,"pza"],["Cierres",p.cier*n*q,null,"pza"],
  ["Burlete de vidrio",null,null,(2*(gw+gh)*n*q/1000).toFixed(2)+" m"]];
@@ -289,6 +293,38 @@ async function gPdf(){
  else{try{doc.save("plan-vidrio.pdf")}catch(e){alert("No se pudo guardar el PDF.")}}
 }
 gId("gW").value=GL.W;gId("gH").value=GL.H;gId("gK").value=GL.k;gId("gT").value=GL.t;gId("gR").checked=GL.r;
+const GFM=[
+["Estándar de taller",[["2440 × 1830 mm (≈ 96 × 72 pulg)",2440,1830],["1840 × 1220 mm (≈ 72 × 48 pulg)",1840,1220],["1220 × 920 mm (≈ 48 × 36 pulg)",1220,920]]],
+["Float europeo (Pilkington, Saint-Gobain)",[["3210 × 2250 mm",3210,2250],["3210 × 2550 mm",3210,2550],["6000 × 3210 mm (jumbo)",6000,3210]]],
+["Vitro / México",[["3600 × 2600 mm",3600,2600],["2600 × 1800 mm",2600,1800],["5180 × 3300 mm",5180,3300],["6100 × 3300 mm (jumbo)",6100,3300]]]];
+GL.mine=GL.mine||[];
+const gSv=()=>{try{localStorage.setItem("desglose_glass",JSON.stringify(GL))}catch(e){}};
+function gFill(){
+ let h='<option value="">Personalizada (escribe las medidas)</option>';
+ GFM.forEach((g,gi)=>{h+=`<optgroup label="${g[0]}">`+g[1].map((f,fi)=>`<option value="${gi}-${fi}">${f[0]}</option>`).join("")+"</optgroup>"});
+ if(GL.mine.length)h+='<optgroup label="Mis medidas">'+GL.mine.map((m,i)=>`<option value="m-${i}">${m[0]} × ${m[1]} mm</option>`).join("")+"</optgroup>";
+ gId("gP").innerHTML=h;gSync();
+}
+function gSync(){const w=+gId("gW").value,h=+gId("gH").value;let v="";
+ GFM.forEach((g,gi)=>g[1].forEach((f,fi)=>{if(f[1]===w&&f[2]===h)v=gi+"-"+fi}));
+ GL.mine.forEach((m,i)=>{if(!v&&m[0]===w&&m[1]===h)v="m-"+i});
+ gId("gP").value=v}
+gId("gP").onchange=e=>{const v=e.target.value;if(!v)return;let f;if(v[0]==="m")f=[0,...GL.mine[+v.slice(2)]];else{const[a,b]=v.split("-");f=GFM[a][1][b]}gId("gW").value=f[1];gId("gH").value=f[2];gRun()};
+["gW","gH"].forEach(i=>gId(i).addEventListener("input",gSync));
+gId("gSave").onclick=()=>{const w=+gId("gW").value,h=+gId("gH").value;if(!(w>0&&h>0))return;if(!GL.mine.some(m=>m[0]===w&&m[1]===h))GL.mine.push([w,h]);gSv();gFill()};
+gId("gDel").onclick=()=>{const w=+gId("gW").value,h=+gId("gH").value;GL.mine=GL.mine.filter(m=>!(m[0]===w&&m[1]===h));gSv();gFill()};
+function gCmp(){
+ const k=+gId("gK").value||0,t=+gId("gT").value||0,r=gId("gR").checked,pcs=gPieces(),out=gId("gCmpOut");
+ if(!pcs.length){out.innerHTML="<div class='mut'>No hay piezas de vidrio todavía.</div>";return}
+ const fm=[];GFM.forEach(g=>g[1].forEach(f=>fm.push(f)));GL.mine.forEach(m=>fm.push([m[0]+" × "+m[1]+" mm (mía)",m[0],m[1]]));
+ const rows=fm.map(([nm,W,H])=>{const Wu=W-2*t,Hu=H-2*t,fit=p=>(p.w<=Wu&&p.h<=Hu)||(r&&p.h<=Wu&&p.w<=Hu),ok=pcs.filter(fit);
+  if(ok.length<pcs.length)return{nm,bad:pcs.length-ok.length};
+  let b=null;for(const o of GORD){const sh=gPack(ok,Wu,Hu,k,r,o);if(!b||sh.length<b.length)b=sh}
+  const used=ok.reduce((a,p)=>a+p.w*p.h,0),n=b.length;return{nm,n,waste:(n*W*H-used)/1e6,util:used/(n*W*H)*100}});
+ const good=rows.filter(x=>!x.bad).sort((a,b)=>a.waste-b.waste),bad=rows.filter(x=>x.bad);
+ out.innerHTML="<h2>Comparación de formatos</h2><div class='tw'><table><tr><th>Formato</th><th class='n'>Planchas</th><th class='n'>Aprovech.</th><th class='n'>Desperdicio</th><th></th></tr>"+good.map((x,i)=>`<tr><td>${x.nm}</td><td class="n">${x.n}</td><td class="n">${x.util.toFixed(1)}%</td><td class="n">${x.waste.toFixed(2)} m²</td><td>${i===0?"Menor desperdicio":""}</td></tr>`).join("")+bad.map(x=>`<tr><td>${x.nm}</td><td colspan="4" class="mut">${x.bad} pieza(s) no caben</td></tr>`).join("")+"</table></div><div class='mut' style='font-size:12px;margin-top:6px'>Compara solo el desperdicio de corte. El precio por m² y la disponibilidad de cada formato los define tu proveedor.</div>"}
+gId("gCmp").onclick=gCmp;
+gFill();
 gId("gGo").onclick=gRun;gId("gPdf").onclick=gPdf;
 
 params();render();
