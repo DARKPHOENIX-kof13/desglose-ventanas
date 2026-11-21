@@ -225,7 +225,7 @@ function conv(){const v=num($("cv").value),mm=v*MM[$("cu").value];
  $("cvo").innerHTML=v>0?[["Milímetros",mm.toFixed(1)+" mm"],["Centímetros",(mm/10).toFixed(2)+" cm"],["Pulgadas decimal",(mm/25.4).toFixed(3)+'"'],["Pulgadas fracción (1/16)",frac(mm)]].map(([a,b])=>`<div class="card" style="padding:10px"><div class="mut" style="font-size:12px">${a}</div><b>${b}</b></div>`).join(""):"";}
 $("cv").oninput=conv;$("cu").onchange=conv;
 $("ft").innerHTML="<tr><th>Fracción</th><th class='n'>mm</th><th class='n'>Decimal</th></tr>"+Array.from({length:16},(_,i)=>i+1).map(i=>{const g=gcd(i,16),l=i===16?"1":i/g+"/"+16/g;return `<tr><td>${l}"</td><td class="n">${(i*25.4/16).toFixed(1)}</td><td class="n">${(i/16).toFixed(4)}</td></tr>`}).join("");
-const GL={W:2440,H:1830,k:0,t:0,r:true,u:"pulg",s:16,mine:[]};let GLR=null;
+const GL={W:3302,H:2133.6,k:0,t:0,r:true,u:"pulg",s:16,mine:[]};let GLR=null;
 try{Object.assign(GL,JSON.parse(localStorage.getItem("desglose_glass")||"{}"))}catch(e){}
 GL.mine=GL.mine||[];
 const gId=i=>document.getElementById(i);
@@ -264,6 +264,7 @@ function gPack(pcs,W,H,k,rot,ord){
 }
 /*PACK_END*/
 const GFM=[
+["Pulgadas (de tu plan de corte)",[["130 × 84 pulg (3302 × 2134 mm)",3302,2133.6]]],
 ["Estándar de taller",[["2440 × 1830 mm (≈ 96 × 72 pulg)",2440,1830],["1840 × 1220 mm (≈ 72 × 48 pulg)",1840,1220],["1220 × 920 mm (≈ 48 × 36 pulg)",1220,920]]],
 ["Float europeo (Pilkington, Saint-Gobain)",[["3210 × 2250 mm",3210,2250],["3210 × 2550 mm",3210,2550],["6000 × 3210 mm (jumbo)",6000,3210]]],
 ["Vitro / México",[["3600 × 2600 mm",3600,2600],["2600 × 1800 mm",2600,1800],["5180 × 3300 mm",5180,3300],["6100 × 3300 mm (jumbo)",6100,3300]]]];
@@ -301,13 +302,17 @@ function gRun(){
  const card=(a,b)=>`<div class="card" style="padding:10px"><div class="mut" style="font-size:12px">${a}</div><b>${b}</b></div>`;
  out.innerHTML=warn+`<div class="grid4">${card("Planchas necesarias",n)}${card("Aprovechamiento",(used/(n*GL.W*GL.H)*100).toFixed(1)+"%")}${card("Desperdicio",gAr((n*GL.W*GL.H-used)/1e6))}${card("Piezas",ok.length)}</div>`+
  `<h2 style="margin-top:14px">Lista de cortes${gU()?" (medidas redondeadas hacia abajo a 1/"+GL.s+" pulg)":""}</h2><div class="tw"><table><tr><th>Ventana</th><th class="n">Cant.</th><th class="n">Ancho × Alto</th></tr>`+list.map(x=>`<tr><td>V${x.id}</td><td class="n">${x.c}</td><td class="n">${gdu(x.w)} × ${gdu(x.h)}</td></tr>`).join("")+`</table></div>`+
- sh.map((s,si)=>{const us=s.items.reduce((a,i)=>a+i.w*i.h,0)/(GL.W*GL.H)*100;
-  return `<h2 style="margin-top:14px">Plancha ${si+1} de ${n} · ${us.toFixed(1)}% usada</h2><svg viewBox="0 0 ${GL.W} ${GL.H}" style="width:100%;max-width:720px;height:auto;border:1px solid var(--bd);border-radius:6px"><rect width="${GL.W}" height="${GL.H}" fill="var(--bg)"/>`+
-  s.items.map(it=>{const x=it.x+GL.t,y=it.y+GL.t,
-   t1=it.w>fs*3&&it.h>fs*1.6?`<text x="${x+it.w/2}" y="${y+it.h/2}" font-size="${fs}" text-anchor="middle" fill="#111" font-family="system-ui">V${it.id}</text>`:"",
-   t2=it.w>fs*7&&it.h>fs*3.2?`<text x="${x+it.w/2}" y="${y+it.h/2+fs*1.15}" font-size="${fs*.8}" text-anchor="middle" fill="#222" font-family="system-ui">${gd(it.w)} × ${gd(it.h)}</text>`:"";
-   return `<rect x="${x}" y="${y}" width="${it.w}" height="${it.h}" fill="hsl(${(it.id*67)%360} 55% 72%)" stroke="#345" stroke-width="${fs/12}"/>`+t1+t2}).join("")+`</svg>`+
-  `<details style="margin-top:8px"><summary>Secuencia de cortes de la plancha ${si+1} (${s.cuts.length})</summary><ol style="margin:8px 0 0;padding-left:22px">`+(GL.t>0?`<li>Refilado: quitar ${gdu(GL.t)} por cada lado.</li>`:"")+s.cuts.map(c=>`<li>${c.o==="V"?"Vertical":"Horizontal"}: medir <b>${gdu(c.rel)}</b> desde el borde ${c.o==="V"?"izquierdo":"superior"} del tramo (${gd(c.tw)} × ${gd(c.th)}).</li>`).join("")+`</ol></details>`}).join("");
+ sh.map((s,si)=>{
+  const us=s.items.reduce((a,i)=>a+i.w*i.h,0)/(GL.W*GL.H)*100,wins={},u=gU()?'"':"";
+  s.items.forEach(i=>wins[i.id]=(wins[i.id]||0)+1);
+  const lg=Object.keys(wins).map(id=>`<span style="display:inline-flex;align-items:center;gap:5px;margin:2px 14px 2px 0;font-size:13px"><i style="width:14px;height:14px;border-radius:3px;background:hsl(${(id*67)%360} 55% 72%);border:1px solid #345"></i>Ventana ${id} - Vidrio 1 (${wins[id]})</span>`).join("");
+  const so=gSob(s,Wu,Hu).map(r=>{const x=r.x+GL.t,y=r.y+GL.t,tx=r.w>fs*9&&r.h>fs*3.4?`<text x="${x+r.w/2}" y="${y+r.h/2}" font-size="${fs*.8}" text-anchor="middle" fill="#666" font-family="system-ui">SOBRANTE</text><text x="${x+r.w/2}" y="${y+r.h/2+fs}" font-size="${fs*.8}" text-anchor="middle" fill="#666" font-family="system-ui">${gd(r.w)}${u} × ${gd(r.h)}${u}</text>`:"";return `<rect x="${x}" y="${y}" width="${r.w}" height="${r.h}" fill="rgba(128,128,128,.14)" stroke="#888" stroke-width="${fs/14}" stroke-dasharray="${fs/2} ${fs/3}"/>`+tx}).join("");
+  const pcs=s.items.map(it=>{const x=it.x+GL.t,y=it.y+GL.t,
+   tw=it.w>fs*4&&it.h>fs*1.8?`<text x="${x+it.w/2}" y="${y+fs*1.15}" font-size="${fs}" text-anchor="middle" fill="#111" font-weight="700" font-family="system-ui">${gd(it.w)}${u}</text>`:"",
+   th=it.h>fs*4&&it.w>fs*1.8?`<text transform="translate(${x+fs*1.1},${y+it.h/2}) rotate(-90)" font-size="${fs}" text-anchor="middle" fill="#111" font-weight="700" font-family="system-ui">${gd(it.h)}${u}</text>`:"";
+   return `<rect x="${x}" y="${y}" width="${it.w}" height="${it.h}" fill="hsl(${(it.id*67)%360} 55% 72%)" stroke="#345" stroke-width="${fs/14}" stroke-dasharray="${fs/2} ${fs/3}"/>`+tw+th}).join("");
+  return `<h2 style="margin-top:16px">Plancha ${si+1} de ${n}</h2><div class="mut" style="margin-bottom:6px">Dimensiones: ${gdu(GL.W)} × ${gdu(GL.H)} · Eficiencia: ${us.toFixed(1)}% · Pedazos: ${s.items.length}</div><div style="margin-bottom:8px">${lg}</div><svg viewBox="0 0 ${GL.W} ${GL.H}" style="width:100%;max-width:760px;height:auto;border-radius:4px"><rect width="${GL.W}" height="${GL.H}" fill="var(--bg)" stroke="#345" stroke-width="${fs/6}"/>`+so+pcs+`</svg>`+
+  `<details style="margin-top:8px"><summary>Secuencia de cortes de la plancha ${si+1} (${s.cuts.length})</summary><ol style="margin:8px 0 0;padding-left:22px">`+(GL.t>0?`<li>Refilado: quitar ${gdu(GL.t)} por cada lado.</li>`:"")+s.cuts.map(c=>`<li>${c.o==="V"?"Vertical":"Horizontal"}: medir <b>${gdu(c.rel)}</b> desde el borde ${c.o==="V"?"izquierdo":"superior"} del tramo (${gd(c.tw)} × ${gd(c.th)}).</li>`).join("")+`</ol></details>`}}).join("");
 }
 function gCmp(){
  gRd();const k=GL.k,t=GL.t,r=GL.r,pcs=gPieces(),out=gId("gCmpOut");
@@ -319,6 +324,7 @@ function gCmp(){
   const used=ok.reduce((a,p)=>a+p.w*p.h,0),n=b.length;return{nm,n,waste:(n*W*H-used)/1e6,util:used/(n*W*H)*100}});
  const good=rows.filter(x=>!x.bad).sort((a,b)=>a.waste-b.waste),bad=rows.filter(x=>x.bad);
  out.innerHTML="<h2>Comparación de formatos</h2><div class='tw'><table><tr><th>Formato</th><th class='n'>Planchas</th><th class='n'>Aprovech.</th><th class='n'>Desperdicio</th><th></th></tr>"+good.map((x,i)=>`<tr><td>${x.nm}</td><td class="n">${x.n}</td><td class="n">${x.util.toFixed(1)}%</td><td class="n">${gAr(x.waste)}</td><td>${i===0?"Menor desperdicio":""}</td></tr>`).join("")+bad.map(x=>`<tr><td>${x.nm}</td><td colspan="4" class="mut">${x.bad} pieza(s) no caben</td></tr>`).join("")+"</table></div><div class='mut' style='font-size:12px;margin-top:6px'>Compara solo el desperdicio de corte. El precio por m² y la disponibilidad de cada formato los define tu proveedor.</div>"}
+const gSob=(s,Wu,Hu)=>s.free.map(f=>({x:f.x,y:f.y,w:Math.min(f.x+f.w,Wu)-f.x,h:Math.min(f.y+f.h,Hu)-f.y})).filter(r=>r.w>=100&&r.h>=100);
 async function gPdf(){
  if(!GLR)gRun();if(!GLR)return;
  if(!window.jspdf){alert("No se pudo cargar el generador de PDF.");return}
@@ -332,14 +338,22 @@ async function gPdf(){
  GLR.list.forEach(x=>{if(y>PH-M){doc.addPage();y=M+4}doc.text("V"+x.id,M,y);doc.text(String(x.c),110,y,{align:"right"});doc.text(`${q(x.w)} x ${q(x.h)}`,PW-M,y,{align:"right"});y+=6});
  GLR.sheets.forEach((s,si)=>{
   doc.addPage();
-  doc.setFont("helvetica","bold");doc.setFontSize(13);doc.text(`Plancha ${si+1} de ${GLR.sheets.length}`,M,M+4);
-  const sc=Math.min((PW-2*M)/GLR.W,(PH-2*M-12)/GLR.H),ox=M,oy=M+10;
-  doc.setDrawColor(60);doc.rect(ox,oy,GLR.W*sc,GLR.H*sc);
+  doc.setFont("helvetica","bold");doc.setFontSize(14);doc.text(`Plancha ${si+1}`,M,M+4);
+  const us=s.items.reduce((a,i)=>a+i.w*i.h,0)/(GLR.W*GLR.H)*100,un=gU()?'"':"";
+  doc.setFont("helvetica","normal");doc.setFontSize(9);doc.text(`Dimensiones: ${q(GLR.W)} x ${q(GLR.H)}     Pedazos: ${s.items.length}`,M,M+10);
+  doc.text(`Eficiencia: ${us.toFixed(1)}%`,PW-M,M+10,{align:"right"});
+  const wins={};s.items.forEach(i=>wins[i.id]=(wins[i.id]||0)+1);let lx=M;
+  Object.keys(wins).forEach(id=>{const tx=`Ventana ${id} - Vidrio 1 (${wins[id]})`;doc.setFillColor(...pal[id%6]);doc.rect(lx,M+13,3.5,3.5,"FD");doc.text(tx,lx+5,M+16);lx+=doc.getTextWidth(tx)+12});
+  const sc=Math.min((PW-2*M)/GLR.W,(PH-2*M-26)/GLR.H),ox=M,oy=M+20,Wu=GLR.W-2*GLR.t,Hu=GLR.H-2*GLR.t;
+  doc.setDrawColor(60);doc.setLineWidth(.5);doc.rect(ox,oy,GLR.W*sc,GLR.H*sc);doc.setLineWidth(.2);
+  gSob(s,Wu,Hu).forEach(r=>{const x=ox+(r.x+GLR.t)*sc,yy=oy+(r.y+GLR.t)*sc,w=r.w*sc,h=r.h*sc;doc.setFillColor(235,235,235);doc.setLineDashPattern([1.5,1],0);doc.rect(x,yy,w,h,"FD");doc.setLineDashPattern([],0);if(w>22&&h>8){doc.setFontSize(6);doc.setTextColor(90);doc.text("SOBRANTE",x+w/2,yy+h/2-1,{align:"center"});doc.text(`${P(q(r.w))}${un} x ${P(q(r.h))}${un}`,x+w/2,yy+h/2+2.5,{align:"center"});doc.setTextColor(0)}});
   s.items.forEach(it=>{const x=ox+(it.x+GLR.t)*sc,yy=oy+(it.y+GLR.t)*sc,w=it.w*sc,h=it.h*sc;
-   doc.setFillColor(...pal[it.id%6]);doc.rect(x,yy,w,h,"FD");
-   doc.setFontSize(7);doc.setFont("helvetica","normal");doc.setTextColor(0);
-   if(w>14&&h>6)doc.text("V"+it.id,x+w/2,yy+h/2,{align:"center"});
-   if(w>30&&h>11)doc.text(`${P(q(it.w))} x ${P(q(it.h))}`,x+w/2,yy+h/2+3.5,{align:"center"})});
+   doc.setFillColor(...pal[it.id%6]);doc.setLineDashPattern([1.5,1],0);doc.rect(x,yy,w,h,"FD");doc.setLineDashPattern([],0);
+   doc.setFontSize(7);doc.setFont("helvetica","bold");doc.setTextColor(0);
+   if(w>16&&h>5)doc.text(P(q(it.w))+un,x+w/2,yy+3.4,{align:"center"});
+   if(h>16&&w>5)doc.text(P(q(it.h))+un,x+3.4,yy+h/2,{align:"center",angle:90})});
+  doc.setFont("helvetica","normal");
+  
   doc.addPage();y=M+4;
   doc.setFont("helvetica","bold");doc.setFontSize(12);doc.text(`Secuencia de cortes - plancha ${si+1}`,M,y);y+=8;doc.setFont("helvetica","normal");doc.setFontSize(10);
   const L=[];if(GLR.t>0)L.push(`Refilado: quitar ${q(GLR.t)} por cada lado.`);
