@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#001233">
+<link rel="icon" type="image/png" href="icons/favicon-64.png">
+<title>DEGLO-MAX · Gabinetes</title>
+<style>
+:root{--bg:#f5f6f8;--card:#fff;--tx:#14181f;--mut:#667085;--bd:#e2e5ea;--ac:#0b6bcb;--acx:#fff;--warn:#fff4d6;--warnt:#6b4b00;--ok:#e8f5ee;--g1:#c9d3df;--g2:#9fb3c8;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1318;--card:#181e26;--tx:#e8ecf2;--mut:#9aa5b4;--bd:#2a3340;--ac:#4a9df0;--acx:#07121f;--warn:#33280a;--warnt:#f3d98b;--ok:#12261b;--g1:#3a4756;--g2:#56708c;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1318;--card:#181e26;--tx:#e8ecf2;--mut:#9aa5b4;--bd:#2a3340;--ac:#4a9df0;--acx:#07121f;--warn:#33280a;--warnt:#f3d98b;--ok:#12261b;--g1:#3a4756;--g2:#56708c;color-scheme:dark}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{padding:18px 16px 6px;max-width:1000px;margin:auto;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+h1{font-size:20px;margin:0}h1 small{display:block;font-size:13px;color:var(--mut);font-weight:400}
+main{max-width:1000px;margin:auto;padding:10px 16px 40px;display:grid;gap:14px;grid-template-columns:1fr}
+@media(min-width:820px){main{grid-template-columns:340px 1fr}.full{grid-column:1/-1}}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:14px}
+h2{font-size:14px;margin:0 0 10px;text-transform:uppercase;letter-spacing:.04em;color:var(--mut)}
+label{display:block;font-size:13px;color:var(--mut);margin:8px 0 3px}
+input,select{width:100%;padding:10px;border:1px solid var(--bd);border-radius:10px;background:var(--bg);color:var(--tx);font:inherit}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.r3{grid-template-columns:1fr 1fr 1fr}
+.seg{display:flex;gap:6px}.seg button{flex:1}
+button{padding:10px 12px;border-radius:10px;border:1px solid var(--bd);background:var(--card);color:var(--tx);font:inherit;cursor:pointer}
+button.on,button.pri{background:var(--ac);color:var(--acx);border-color:var(--ac);font-weight:600}
+a.lnk{color:var(--ac);text-decoration:none;font-weight:600;padding:8px 4px}
+.warn{background:var(--warn);color:var(--warnt);border-radius:10px;padding:9px 12px;font-size:13px;margin-bottom:10px}
+.tw{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:7px 6px;border-bottom:1px solid var(--bd);white-space:nowrap}td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+tr.g td{background:var(--ok);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.mut{color:var(--mut)}
+details summary{cursor:pointer;font-weight:600}.grid4{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px}
+svg text{font-family:system-ui,sans-serif}
+</style>
+</head>
+<body>
+<header>
+<div style="display:flex;align-items:center;gap:12px"><img src="icons/icon-192.png" width="44" height="44" alt="DEGLO-MAX" style="border-radius:10px;flex:none">
+<h1>DEGLO-MAX · Gabinetes<small>Gabinetes de aluminio: perfiles, vidrio y herrajes</small></h1></div>
+<div style="display:flex;gap:10px;align-items:center"><a class="lnk" href="index.html">← Ventanas</a><div class="seg" id="units" style="width:170px"></div></div>
+</header>
+<main>
+<section class="card">
+<h2>Gabinete</h2>
+<div class="row r3"><div><label>Ancho (<span class="u"></span>)</label><input id="iA" type="text" inputmode="text" autocomplete="off"></div>
+<div><label>Alto (<span class="u"></span>)</label><input id="iH" type="text" inputmode="text" autocomplete="off"></div>
+<div><label>Fondo (<span class="u"></span>)</label><input id="iF" type="text" inputmode="text" autocomplete="off"></div></div>
+<div class="row"><div><label>Cuerpos (columnas)</label><input id="iC" type="number" min="1" max="8" inputmode="numeric"></div>
+<div><label>Entrepaños por cuerpo</label><input id="iE" type="number" min="0" max="8" inputmode="numeric"></div></div>
+<label>Puertas</label>
+<div class="row"><select id="iT"><option value="abatible">Abatibles</option><option value="corrediza">Corredizas (2 por cuerpo)</option></select>
+<select id="iP"><option value="1">1 por cuerpo</option><option value="2">2 por cuerpo</option></select></div>
+<div class="row"><div><label>Relleno de puertas</label><select id="iFi"><option value="vidrio">Vidrio</option><option value="panel">Panel</option></select></div>
+<div><label>Entrepaños de</label><select id="iSh"><option value="vidrio">Vidrio</option><option value="panel">Panel</option></select></div></div>
+<label>Trasera</label><select id="iBk"><option value="ninguna">Sin trasera</option><option value="panel">Con panel trasero</option></select>
+<div class="acts"><button class="pri" id="bCopy">Copiar resumen</button><button id="bReset">Restablecer valores</button></div>
+</section>
+<section class="card">
+<h2>Vista frontal</h2><div id="svg"></div>
+<div id="out" style="margin-top:12px"></div>
+</section>
+<section class="card full">
+<details><summary>Perfiles, holguras y descuentos (editable, en mm)</summary>
+<div class="warn" style="margin:10px 0">Los valores iniciales son de ejemplo. Cada sistema de perfiles tiene sus propias medidas: ajústalas con las de tu catálogo antes de cortar. Se guardan en este navegador. El marco se calcula con uniones a tope: los travesaños van entre los postes.</div>
+<div class="grid4" id="params"></div></details>
+</section>
+</main>
+<div class="mut" style="text-align:center;font-size:12px;padding:0 0 18px">DEGLO-MAX · Gabinetes · prueba 1</div>
+<script>
+const $=i=>document.getElementById(i);
+const gcd=(a,b)=>b?gcd(b,a%b):a;
+const frac=mm=>{const t=Math.round(Math.abs(mm)/25.4*16),w=Math.floor(t/16),r=t%16,g=r?gcd(r,16):1;return(mm<0?"-":"")+(r?(w?w+" ":"")+r/g+"/"+16/g:""+w)+'"'};
+const num=s=>{s=String(s).replace(/["\u201d\u2033]/g,"").replace(",",".").replace("-"," ").trim();if(!s)return 0;let t=0;for(const p of s.split(/\s+/)){if(p.includes("/")){const[a,b]=p.split("/");t+=(parseFloat(a)||0)/(parseFloat(b)||1)}else t+=parseFloat(p)||0}return t};
+const UF={mm:1,cm:10,pulg:25.4};
+const PD={pw:["Ancho del perfil del marco",25.4],pd:["Ancho del perfil de puerta",20],hp:["Holgura de puerta",3],hE:["Holgura de entrepaño",3],enc:["Encaje del vidrio o panel (por lado)",8],tr:["Traslape de puertas corredizas",25],rl:["Descuento de alto en corredizas",30],h3:["Altura desde la que lleva 3 bisagras",1200],bar:["Largo de barra de perfil",6000],kerf:["Ancho de sierra",3]};
+const DP=()=>Object.fromEntries(Object.entries(PD).map(([k,v])=>[k,v[1]]));
+const DEF={unit:"pulg",A:"36",H:"30",F:"24",nC:1,nE:1,nP:2,tipo:"abatible",fill:"vidrio",shelf:"vidrio",back:"ninguna"};
+let S=Object.assign({},DEF,{P:DP()});
+try{const r=JSON.parse(localStorage.getItem("gab")||"null");if(r){Object.assign(S,r);S.P=Object.assign(DP(),r.P||{})}}catch(e){}
+const save=()=>{try{localStorage.setItem("gab",JSON.stringify(S))}catch(e){}};
+const toMM=s=>num(s)*UF[S.unit];
+const show=mm=>S.unit==="pulg"?frac(mm).replace('"',""):S.unit==="cm"?String(+(mm/10).toFixed(1)):String(Math.round(mm));
+const fmt=mm=>S.unit==="pulg"?frac(mm):S.unit==="cm"?(mm/10).toFixed(1)+" cm":Math.round(mm)+" mm";
+/*CALC_START*/
+function calc(c,p){
+ const{A,H,F,nC,nE,tipo,fill,shelf,back}=c,pw=p.pw,cw=(A-(nC+1)*pw)/nC,ch=H-2*pw,dep=F-2*pw;
+ const nP=tipo==="corrediza"?2:c.nP,nD=nC*nP,prof=[],pan=[],her=[];
+ const dw=tipo==="corrediza"?(cw+p.tr)/2:cw/nP-p.hp,dh=tipo==="corrediza"?ch-p.rl:ch-p.hp;
+ prof.push(["Marco","Poste vertical",2*(nC+1),H]);
+ prof.push(["Marco","Travesaño de ancho (frente y fondo)",4*nC,cw]);
+ prof.push(["Marco","Travesaño de fondo",2*(nC+1),dep]);
+ prof.push(["Puertas","Vertical de puerta",2*nD,dh]);
+ prof.push(["Puertas","Horizontal de puerta",2*nD,dw-2*p.pd]);
+ if(tipo==="corrediza")prof.push(["Puertas","Riel (superior e inferior)",2*nC,cw]);
+ pan.push([fill==="vidrio"?"Vidrio de puerta":"Panel de puerta",nD,dw-2*p.pd+2*p.enc,dh-2*p.pd+2*p.enc]);
+ if(nE>0)pan.push([shelf==="vidrio"?"Vidrio de entrepaño":"Panel de entrepaño",nC*nE,cw-p.hE,dep-p.hE]);
+ if(back==="panel")pan.push(["Panel trasero",nC,cw+2*p.enc,ch+2*p.enc]);
+ if(tipo==="abatible")her.push(["Bisagras",nD*(dh>p.h3?3:2)]);else her.push(["Carretillas",nD*2]);
+ her.push(["Jaladeras",nD]);her.push(["Escuadras de esquina",4*(nC+1)]);
+ if(nE>0)her.push(["Soportes de entrepaño",4*nC*nE]);
+ return{prof,pan,her,cw,ch,dep,dw,dh,nP,nD};
+}
+function bars(prof,p){
+ const L=[],bins=[],big=[];prof.forEach(r=>{for(let i=0;i<r[2];i++)L.push(r[3])});
+ L.sort((a,b)=>b-a);
+ L.forEach(l=>{if(l>p.bar){big.push(l);return}
+  const b=bins.find(b=>b.rest>=l+p.kerf-1e-6);
+  if(b){b.items.push(l);b.rest-=l+p.kerf}else bins.push({items:[l],rest:p.bar+p.kerf-(l+p.kerf)})});
+ const used=L.filter(l=>l<=p.bar).reduce((a,b)=>a+b,0);
+ return{bins,big,util:bins.length?used/(bins.length*p.bar)*100:0};
+}
+/*CALC_END*/
+function read(){return{A:toMM(S.A),H:toMM(S.H),F:toMM(S.F),nC:Math.max(1,Math.min(8,+S.nC||1)),nE:Math.max(0,Math.min(8,+S.nE||0)),nP:+S.nP||1,tipo:S.tipo,fill:S.fill,shelf:S.shelf,back:S.back}}
+function drawSvg(c,r){
+ const{A,H,nC,nE}=c,pw=S.P.pw,m=Math.max(A,H)*.09,fs=Math.max(A,H)/32,cw=r.cw;let s="";
+ s+=`<rect x="0" y="0" width="${A}" height="${H}" fill="var(--bg)" stroke="var(--g2)" stroke-width="${fs/8}"/>`;
+ for(let i=0;i<=nC;i++)s+=`<rect x="${i*(cw+pw)}" y="0" width="${pw}" height="${H}" fill="var(--g1)" stroke="var(--g2)" stroke-width="${fs/10}"/>`;
+ s+=`<rect x="0" y="0" width="${A}" height="${pw}" fill="var(--g1)" stroke="var(--g2)" stroke-width="${fs/10}"/><rect x="0" y="${H-pw}" width="${A}" height="${pw}" fill="var(--g1)" stroke="var(--g2)" stroke-width="${fs/10}"/>`;
+ for(let i=0;i<nC;i++){const x0=pw+i*(cw+pw);
+  for(let k=1;k<=nE;k++){const y=pw+k*(r.ch/(nE+1));s+=`<line x1="${x0}" x2="${x0+cw}" y1="${y}" y2="${y}" stroke="var(--g2)" stroke-width="${fs/10}" stroke-dasharray="${fs/2} ${fs/3}"/>`}
+  for(let d=0;d<r.nP;d++){
+   const corr=c.tipo==="corrediza",dx=corr?x0+d*(cw-r.dw):x0+d*(cw/r.nP)+(d?r.dw*0+0:0)+ (corr?0:(cw/r.nP-r.dw)/2),y=pw+(corr?(c.H-2*pw-r.dh)/2:(c.H-2*pw-r.dh)/2);
+   const glass=c.fill==="vidrio";
+   s+=`<rect x="${dx}" y="${y}" width="${r.dw}" height="${r.dh}" fill="${glass?"rgba(80,160,230,.22)":"rgba(140,150,160,.35)"}" stroke="var(--ac)" stroke-width="${fs/8}"/>`;
+   const hx=corr?(d?dx+fs:dx+r.dw-fs*1.4):(r.nP===2?(d?dx+fs*.6:dx+r.dw-fs*1.0):dx+r.dw-fs*1.0);
+   s+=`<rect x="${hx}" y="${y+r.dh/2-fs*1.2}" width="${fs*.5}" height="${fs*2.4}" rx="${fs/4}" fill="var(--ac)"/>`}}
+ s+=`<text x="${A/2}" y="${H+fs*1.9}" font-size="${fs*1.3}" text-anchor="middle" fill="var(--tx)">${fmt(A)}</text>`;
+ s+=`<text transform="translate(${-fs*.9},${H/2}) rotate(-90)" font-size="${fs*1.3}" text-anchor="middle" fill="var(--tx)">${fmt(H)}</text>`;
+ return`<svg viewBox="${-m} ${-fs} ${A+2*m} ${H+fs*3.2}" style="width:100%;max-width:560px;height:auto;display:block;margin:auto">${s}</svg>`;
+}
+function render(){
+ const c=read(),p=S.P,out=$("out");
+ document.querySelectorAll(".u").forEach(e=>e.textContent=S.unit);
+ document.querySelectorAll("#units button").forEach(b=>b.classList.toggle("on",b.dataset.u===S.unit));
+ if(!(c.A>0&&c.H>0&&c.F>0)){$("svg").innerHTML="";out.innerHTML="<div class='mut'>Ingresa ancho, alto y fondo.</div>";return}
+ const r=calc(c,p);
+ if(r.cw<=0||r.dw-2*p.pd<=0||r.dep<=0){$("svg").innerHTML="";out.innerHTML="<div class='warn'>Las medidas son demasiado pequeñas para esa cantidad de cuerpos o puertas.</div>";return}
+ $("svg").innerHTML=drawSvg(c,r);
+ const b=bars(r.prof,p),grp={};
+ let h=`<div class="tw"><table><tr><th>Perfiles</th><th class="n">Cant.</th><th class="n">Medida</th></tr>`;
+ ["Marco","Puertas"].forEach(g=>{h+=`<tr class="g"><td colspan="3">${g}</td></tr>`;r.prof.filter(x=>x[0]===g).forEach(x=>{h+=`<tr><td>${x[1]}</td><td class="n">${x[2]}</td><td class="n">${fmt(x[3])}</td></tr>`})});
+ h+=`<tr class="g"><td colspan="3">Vidrio y paneles</td></tr>`+r.pan.map(x=>`<tr><td>${x[0]}</td><td class="n">${x[1]}</td><td class="n">${fmt(x[2])} × ${fmt(x[3])}</td></tr>`).join("");
+ h+=`<tr class="g"><td colspan="3">Herrajes</td></tr>`+r.her.map(x=>`<tr><td>${x[0]}</td><td class="n">${x[1]}</td><td class="n"></td></tr>`).join("")+`</table></div>`;
+ const gp=bars=>{const m={};bars.items.forEach(l=>m[l]=(m[l]||0)+1);return Object.keys(m).map(Number).sort((a,b)=>b-a).map(l=>`${m[l]}×${fmt(l).replace(" ","\u00a0")}`).join(" + ")};
+ h+=`<h2 style="margin-top:16px">Barras de perfil (${fmt(p.bar)})</h2>`+(b.big.length?`<div class="warn">${b.big.length} corte(s) son más largos que la barra.</div>`:"")+
+  `<div class="mut" style="margin-bottom:6px">${b.bins.length} barra(s) · aprovechamiento ${b.util.toFixed(1)}%</div><div class="tw"><table>`+b.bins.map((x,i)=>`<tr><td>Barra ${i+1}</td><td>${gp(x)}</td><td class="n">sobra ${fmt(Math.max(0,x.rest))}</td></tr>`).join("")+`</table></div>`;
+ out.innerHTML=h;save();
+}
+function summary(){
+ const c=read(),r=calc(c,S.P),b=bars(r.prof,S.P);
+ return`Gabinete ${fmt(c.A)} × ${fmt(c.H)} × ${fmt(c.F)} · ${c.nC} cuerpo(s) · ${r.nD} puerta(s) ${c.tipo}s\n\nPERFILES\n`+r.prof.map(x=>`${x[1]}: ${x[2]} × ${fmt(x[3])}`).join("\n")+`\n\nVIDRIO Y PANELES\n`+r.pan.map(x=>`${x[0]}: ${x[1]} × ${fmt(x[2])} × ${fmt(x[3])}`).join("\n")+`\n\nHERRAJES\n`+r.her.map(x=>`${x[0]}: ${x[1]}`).join("\n")+`\n\nBarras de ${fmt(S.P.bar)}: ${b.bins.length} (aprovechamiento ${b.util.toFixed(1)}%)`;
+}
+function fill(){
+ $("iA").value=S.A;$("iH").value=S.H;$("iF").value=S.F;$("iC").value=S.nC;$("iE").value=S.nE;$("iP").value=String(S.nP);$("iT").value=S.tipo;$("iFi").value=S.fill;$("iSh").value=S.shelf;$("iBk").value=S.back;
+ $("iP").disabled=S.tipo==="corrediza";
+ $("params").innerHTML=Object.entries(PD).map(([k,v])=>`<div><label>${v[0]} (mm)</label><input type="number" step="any" data-k="${k}" value="${S.P[k]}"></div>`).join("");
+ document.querySelectorAll("#params input").forEach(i=>i.oninput=()=>{S.P[i.dataset.k]=parseFloat(i.value)||0;render()});
+}
+$("units").innerHTML=["mm","cm","pulg"].map(u=>`<button data-u="${u}">${u}</button>`).join("");
+document.querySelectorAll("#units button").forEach(b=>b.onclick=()=>{const A=toMM(S.A),H=toMM(S.H),F=toMM(S.F);S.unit=b.dataset.u;S.A=show(A);S.H=show(H);S.F=show(F);fill();render()});
+[["iA","A"],["iH","H"],["iF","F"]].forEach(([i,k])=>$(i).oninput=e=>{S[k]=e.target.value;render()});
+[["iC","nC"],["iE","nE"]].forEach(([i,k])=>$(i).oninput=e=>{S[k]=e.target.value;render()});
+[["iT","tipo"],["iP","nP"],["iFi","fill"],["iSh","shelf"],["iBk","back"]].forEach(([i,k])=>$(i).onchange=e=>{S[k]=e.target.value;if(k==="tipo")$("iP").disabled=S.tipo==="corrediza";render()});
+$("bCopy").onclick=async()=>{const t=summary();try{await navigator.clipboard.writeText(t);$("bCopy").textContent="Copiado"}catch(e){prompt("Copia el texto:",t)}setTimeout(()=>$("bCopy").textContent="Copiar resumen",1500)};
+$("bReset").onclick=()=>{S=Object.assign({},DEF,{P:DP()});fill();render()};
+fill();render();
+if("serviceWorker" in navigator&&location.protocol.startsWith("http"))navigator.serviceWorker.register("sw.js").catch(()=>{});
+</script>
+</body>
+</html>
